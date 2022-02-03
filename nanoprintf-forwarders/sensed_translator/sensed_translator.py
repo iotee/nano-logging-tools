@@ -91,7 +91,7 @@ def run(addr_forward, addr_subscribe):
 
             if msg:
                 #hostname_n, rest = msg.split(None, 1)
-                print msg
+                print(msg)
 
                 msg2 = transform_for_sensed(msg)
                 if msg2:

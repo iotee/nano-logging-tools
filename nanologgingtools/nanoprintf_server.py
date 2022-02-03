@@ -71,13 +71,16 @@ def write_to_log(msg):
     g_loggers[hostname_n].debug(rest)
 
 
-def run(addr_listenprintf, addr_forward, addr_subscribe, uselog, debug):
+def run(addr_listenprintf, addr_forward, addr_subscribe, uselog, debug, binary):
 
     log.info("listening for printf-uart-nanomsg: %s", addr_listenprintf)
     log.info("subscribing for messages to      : %s", addr_subscribe)
     log.info("forwarding messages to           : %s", addr_forward)
     log.info("logging messages to files        : %s", uselog)
     log.info("logging messages to stdout       : %s", debug)
+    if binary:
+        log.info("Using binary mode")
+    
 
     if not debug:
         logging.getLogger().handlers[0].setLevel(logging.INFO)
@@ -119,7 +122,12 @@ def run(addr_listenprintf, addr_forward, addr_subscribe, uselog, debug):
                 # reply anything to the REQ socket or no more messages will arrive
                 soc_rep.send("got it")
                 # ONLY messages from the REQ socket can be jumbomessages (simple lines joined by newlines)
-                msgs = jumbomsg.split("\n")
+                msgs = None
+                if binary:
+                    msgs = jumbomsg.decode('ascii').split("\n")
+                else:
+                    msgs = jumbomsg.split("\n")
+                
                 hostname_n = "?"
                 for msg in msgs:
                     hostname_n, rest = msg.split(None, 1)
@@ -206,6 +214,12 @@ def main():
         action="store_true",
         default=False,
         help="write incoming messages to stdout"
+    )
+    ap.add_argument(
+        "--binary",
+        dest="binary",
+        default=False,
+        help="Binary mode toggle",
     )
     args = ap.parse_args()
     run(**args.__dict__)
